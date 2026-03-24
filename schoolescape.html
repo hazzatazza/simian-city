@@ -10,10 +10,24 @@
         .stat-box { display: flex; flex-direction: column; align-items: center; }
         .label { font-size: 0.75em; color: #bbb; text-transform: uppercase; letter-spacing: 1px; }
         .value { font-size: 1.3em; font-weight: bold; color: #ffeb3b; }
+        
+        /* New styles for the corner image */
+        .corner-image {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 120px; /* Adjust size as needed */
+            height: auto;
+            z-index: 100;
+            pointer-events: none; /* Prevents the image from blocking clicks */
+        }
     </style>
 </head>
 <body>
     <h1>School Escape</h1>
+    
+    <img src="https://iili.io/q4IJf9a.png" class="corner-image" alt="Decoration">
+
     <canvas id="gameCanvas" width="800" height="450"></canvas>
     <div class="ui-panel">
         <div class="stat-box"><span class="label">Score</span><span id="score" class="value">0</span></div>
@@ -35,6 +49,13 @@
         let activeJoey = null;
         let clouds = [{x: 100, y: 50, s: 0.5}, {x: 400, y: 80, s: 0.3}, {x: 700, y: 40, s: 0.7}];
         let rain = [];
+
+        const studentNames = [
+            "JOEY BOWMAN", "BILLY BYRD", "SAMMY SLIDE", "TIMMY TUMBLE", 
+            "BOBBY BOUNCE", "CHARLIE CHUTE", "DANNY DROP", "EDDIE EXIT", 
+            "FRANKY FALL", "GARY GLIDE", "HARRY HOP", "STUDENT #42",
+            "KYLE KICKFLIP", "LEO LEAP", "MIKEY METEOR", "NATE NOSE-DIVE", "ALGEBRA ANDY", "BALAKE BALONIE"
+        ];
 
         function resetGame() { score = 0; misses = 0; gameOver = false; missionAccomplished = false; speedMultiplier = 1.0; activeJoey = null; updateUI(); }
         function updateUI() {
@@ -63,6 +84,9 @@
                 rain.forEach(r => {
                     ctx.beginPath(); ctx.moveTo(r.x, r.y); ctx.lineTo(r.x - 2, r.y + r.l); ctx.stroke();
                     r.y += 10; if (r.y > 400) { r.y = -10; r.x = Math.random()*800; }
+                    if (r.y > 395) {
+                        ctx.beginPath(); ctx.arc(r.x, 400, 2, 0, Math.PI); ctx.stroke();
+                    }
                 });
             }
 
@@ -133,16 +157,10 @@
         }
 
         function spawnJoey() {
-            // TARGETED JUMPING: Joey chooses a random landing spot between school and 75% of screen
             const startX = 130;
-            const targetX = 160 + (Math.random() * 440); // 75% of 800 is 600
-            
-            // Calculate time to fall based on gravity and vy
+            const targetX = 160 + (Math.random() * 440);
             let baseVY = -2.0 * speedMultiplier;
             let currentGravity = gravity * speedMultiplier;
-            
-            // Quadratic formula to find time (t) where y = paddle.y
-            // (0.5 * g * t^2) + (vy * t) - (targetY - startY) = 0
             const a = 0.5 * currentGravity;
             const b = baseVY;
             const c = -(paddle.y - 120);
@@ -153,7 +171,8 @@
                 vx: (targetX - startX) / time, 
                 vy: baseVY, 
                 limbAngle: 0,
-                hasBounced: false 
+                hasBounced: false,
+                name: studentNames[Math.floor(Math.random() * studentNames.length)]
             };
         }
 
@@ -196,7 +215,7 @@
             drawHuman(paddle.x - 35, paddle.y, "#1976d2", false, 0, paddle.vx, "TONY"); 
             drawHuman(paddle.x + 35, paddle.y, "#2e7d32", false, 0, paddle.vx, "DANIEL"); 
             ctx.strokeStyle = "#ffeb3b"; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(paddle.x - 30, paddle.y - 8); ctx.lineTo(paddle.x + 30, paddle.y - 8); ctx.stroke();
-            if (activeJoey) drawHuman(activeJoey.x, activeJoey.y, "#fb8c00", true, activeJoey.limbAngle, 0, "JOEY BOWMAN");
+            if (activeJoey) drawHuman(activeJoey.x, activeJoey.y, "#fb8c00", true, activeJoey.limbAngle, 0, activeJoey.name);
 
             if (gameOver || missionAccomplished) {
                 ctx.fillStyle = "rgba(0,0,0,0.85)"; ctx.fillRect(0,0,800,450);
